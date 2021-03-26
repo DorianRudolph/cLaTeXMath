@@ -1,4 +1,4 @@
-#if defined(BUILD_QT) && !defined(MEM_CHECK)
+#if (defined(BUILD_QT) or defined(BUILD_SKIA)) && !defined(MEM_CHECK)
 
 #include <string>
 
@@ -27,8 +27,8 @@ MainWindow::MainWindow(QWidget* parent)
   layout->addWidget(splitter);
 
   // the TeX widget is on the left
-  _texwidget = new TeXWidget(nullptr, text_size);
-  _texwidget->setMinimumWidth(400);
+  //_texwidget = new TeXWidget(nullptr, text_size);
+  //_texwidget->setMinimumWidth(400);
 
   // these are the widgets on the right side
   // want an editor at the top and controls at bottom
@@ -58,7 +58,7 @@ MainWindow::MainWindow(QWidget* parent)
 
   rlayout->addWidget(controls);
 
-  splitter->addWidget(_texwidget);
+  //splitter->addWidget(_texwidget);
   splitter->addWidget(right);
 
   setLayout(layout);
@@ -75,20 +75,20 @@ MainWindow::MainWindow(QWidget* parent)
 
 void MainWindow::fontSizeChanged(int size)
 {
-  _texwidget->setTextSize(size);
+  //_texwidget->setTextSize(size);
 }
 
 void MainWindow::nextClicked()
 {
   auto sample = _samples.next();
   _textedit->setText(QString::fromStdWString(sample));
-  _texwidget->setLaTeX(sample);
+  //_texwidget->setLaTeX(sample);
 }
 
 void MainWindow::renderClicked()
 {
   QString text = _textedit->toPlainText();
-  _texwidget->setLaTeX(text.toStdWString());
+  //_texwidget->setLaTeX(text.toStdWString());
 }
 
 void MainWindow::saveClicked()

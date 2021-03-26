@@ -1,10 +1,14 @@
-#if defined(BUILD_QT) && !defined(MEM_CHECK)
+#if (defined(BUILD_QT) or defined(BUILD_SKIA)) && !defined(MEM_CHECK)
 
 #ifndef QT_MAINWINDOW_H
 #define QT_MAINWINDOW_H
 
 #include "samples.h"
-#include "qt_texwidget.h"
+#ifdef BUILD_SKIA
+  //#include "qt_skiatexwidget.h"
+#else
+  //#include "qt_texwidget.h"
+#endif
 
 #include <QWidget>
 #include <QTextEdit>
@@ -24,7 +28,7 @@ protected slots:
   void fontSizeChanged(int size);
 
 protected:
-  TeXWidget* _texwidget;
+  //TeXWidget* _texwidget;
   QTextEdit* _textedit;
   QSpinBox* _sizespin;
 

@@ -210,7 +210,6 @@ void Graphics2D_skia::translate(float dx, float dy) {
 }
 
 void Graphics2D_skia::scale(float sx, float sy) {
-  //qInfo() << "scale" << sx << sy;
   _sx *= sx;
   _sy *= sy;
   _canvas->scale(sx, sy);
@@ -221,13 +220,10 @@ static inline float radiansToDegrees(float angle) {
 }
 
 void Graphics2D_skia::rotate(float angle) {
-  //qInfo() << "rotate" << angle;
   _canvas->rotate(radiansToDegrees(angle));
 }
 
 void Graphics2D_skia::rotate(float angle, float px, float py) {
-
-  //qInfo() << "translate" << px << py << "rotate" << angle;
   _canvas->translate(px, py);
   _canvas->rotate(radiansToDegrees(angle));
   _canvas->translate(-px, -py);

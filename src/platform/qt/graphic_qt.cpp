@@ -2,7 +2,7 @@
 
 #include "config.h"
 
-#if defined(BUILD_QT) && !defined(MEM_CHECK)
+#if defined(BUILD_SKIA) && !defined(MEM_CHECK)
 
 #include "platform/qt/graphic_qt.h"
 

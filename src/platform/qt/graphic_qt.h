@@ -1,6 +1,6 @@
 #include "config.h"
 
-#if defined(BUILD_QT) && !defined(MEM_CHECK)
+#if defined(BUILD_SKIA) && !defined(MEM_CHECK)
 
 #ifndef GRAPHIC_QT_H_INCLUDED
 #define GRAPHIC_QT_H_INCLUDED
