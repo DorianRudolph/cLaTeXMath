@@ -2,15 +2,18 @@
 
 #if defined(BUILD_SKIA) && !defined(MEM_CHECK)
 
-#ifndef QT_TEXWIDGET_H
-#define QT_TEXWIDGET_H
+#ifndef QT_SKIATEXWIDGET_H
+#define QT_SKIATEXWIDGET_H
 
 #include "platform/qt/graphic_qt.h"
 #include "latex.h"
+#include "rendercontext.h"
 
-#include <QWidget>
+#include <QOpenGLWidget>
 
-class TeXWidget : public QWidget
+class QOpenGLFunctions;
+
+class TeXWidget : public QOpenGLWidget
 {
  public:
   TeXWidget(QWidget* parent = nullptr, float text_size=20.f);
@@ -22,12 +25,20 @@ class TeXWidget : public QWidget
   bool isRenderDisplayed();
   int getRenderWidth();
   int getRenderHeight();
-  void paintEvent(QPaintEvent* event);
 
- private:
+protected:
+  void initializeGL() override;
+  void paintGL() override;
+  void resizeGL(int w, int h) override;
+
+private:
   tex::TeXRender* _render;
   float _text_size;
   int _padding;
+  std::wstring _latex {};
+
+  std::unique_ptr<RenderContext> _render_context;
+  QOpenGLFunctions *_functions{};
 };
 
 #endif

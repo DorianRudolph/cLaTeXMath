@@ -4,6 +4,8 @@
 
 #include "platform/skia/graphic_skia.h"
 
+#include <utility>
+
 using namespace tex;
 using namespace std;
 
@@ -12,7 +14,7 @@ std::map<std::pair<std::string,int>,sk_sp<SkTypeface>> Font_skia::_named_typefac
 std::map<std::string,sk_sp<SkTypeface>> Font_skia::_file_typefaces;
 
 Font_skia::Font_skia(sk_sp<SkTypeface> typeface, float size) {
-    _font.setTypeface(typeface);
+    _font.setTypeface(std::move(typeface));
     _font.setSubpixel(true);
     _font.setHinting(SkFontHinting::kNone); //Glyphs move around less when zooming
     _font.setEdging(SkFont::Edging::kSubpixelAntiAlias); //TODO make subpixel configurable

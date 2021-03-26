@@ -1,19 +1,19 @@
 #if defined(BUILD_SKIA) && !defined(MEM_CHECK)
 
 #include "qt_skiatexwidget.h"
+#include <QOpenGLContext>
+#include <core/SkCanvas.h>
+#include <QOpenGLFunctions>
+#include "platform/skia/graphic_skia.h"
 
 using namespace tex;
 
 TeXWidget::TeXWidget(QWidget* parent, float text_size)
-  : QWidget(parent),
+  : QOpenGLWidget(parent),
     _render(nullptr),
     _text_size(text_size),
     _padding(20)
-{
-  QPalette pal = palette();
-  pal.setColor(QPalette::Window, Qt::white);
-  setPalette(pal);
-}
+{}
 
 TeXWidget::~TeXWidget()
 {
@@ -44,7 +44,8 @@ void TeXWidget::setLaTeX(const std::wstring& latex)
         width() - _padding * 2,
         _text_size,
         _text_size / 3.f,
-        0xff424242);
+        0xff000000);
+  puts("setLaTeX");
   update();
 }
 
@@ -63,14 +64,36 @@ int TeXWidget::getRenderHeight()
   return _render == nullptr ? 0 : _render->getHeight() + _padding * 2;
 }
 
-void TeXWidget::paintEvent(QPaintEvent* event)
-{
-  if(_render != nullptr) {
-    //QPainter painter(this);
-    //painter.setRenderHint(QPainter::Antialiasing, true);
-    //Graphics2D_qt g2(&painter);
-    //_render->draw(g2, _padding, _padding);
+void TeXWidget::initializeGL() {
+  makeCurrent();
+  _functions = context()->functions();
+  _render_context = std::make_unique<RenderContext>(context(), defaultFramebufferObject());
+}
+
+void TeXWidget::paintGL() {
+  puts("paintGL");
+  auto *canvas = _render_context->surface->getCanvas();
+  canvas->clear(SK_ColorWHITE);
+  SkPaint paint;
+  canvas->drawCircle(100, 100, 50, paint);
+  Graphics2D_skia g2 (canvas);
+  if (_render) {
+    _render->draw(g2, _padding, _padding);
   }
+  canvas->flush();
+}
+
+void TeXWidget::resizeGL(int w, int h) {
+  makeCurrent();
+  puts("resizeGL");
+
+  _functions->glViewport(0, 0, w, h);
+  _functions->glClearColor(1, 1, 1, 1);
+  _functions->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  _functions->glClearStencil(0);
+
+  _render_context->createSurface(w, h);
+  update();
 }
 
 
