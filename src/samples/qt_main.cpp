@@ -1,4 +1,4 @@
-#if (defined(BUILD_QT) or defined(BUILD_SKIA)) && !defined(MEM_CHECK)
+#if (defined(BUILD_QT) || defined(BUILD_SKIA)) && !defined(MEM_CHECK)
 
 #include "latex.h"
 #include "samples.h"

@@ -1,11 +1,11 @@
-#if (defined(BUILD_QT) or defined(BUILD_SKIA)) && !defined(MEM_CHECK)
+#if (defined(BUILD_QT) || defined(BUILD_SKIA)) && !defined(MEM_CHECK)
 
 #ifndef QT_MAINWINDOW_H
 #define QT_MAINWINDOW_H
 
 #include "samples.h"
 #ifdef BUILD_SKIA
-  //#include "qt_skiatexwidget.h"
+  #include "qt_skiatexwidget.h"
 #else
   #include "qt_texwidget.h"
 #endif
