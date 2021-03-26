@@ -7,7 +7,7 @@
 #ifdef BUILD_SKIA
   //#include "qt_skiatexwidget.h"
 #else
-  //#include "qt_texwidget.h"
+  #include "qt_texwidget.h"
 #endif
 
 #include <QWidget>
@@ -28,7 +28,7 @@ protected slots:
   void fontSizeChanged(int size);
 
 protected:
-  //TeXWidget* _texwidget;
+  TeXWidget* _texwidget;
   QTextEdit* _textedit;
   QSpinBox* _sizespin;
 
