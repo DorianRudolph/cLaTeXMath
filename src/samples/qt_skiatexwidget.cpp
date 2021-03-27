@@ -5,94 +5,119 @@
 #include <core/SkCanvas.h>
 #include <QOpenGLFunctions>
 #include "platform/skia/graphic_skia.h"
+#include <gpu/gl/GrGLAssembleInterface.h>
+#include <QApplication>
 
 using namespace tex;
 
-TeXWidget::TeXWidget(QWidget* parent, float text_size)
-  : QOpenGLWidget(parent),
-    _render(nullptr),
-    _text_size(text_size),
-    _padding(20)
-{}
+static bool AllowEGL;
 
-TeXWidget::~TeXWidget()
-{
+void initGL() {
+  QSurfaceFormat fmt;
+  fmt.setDepthBufferSize(0);
+  fmt.setRedBufferSize(8);
+  fmt.setGreenBufferSize(8);
+  fmt.setBlueBufferSize(8);
+  fmt.setStencilBufferSize(8);
+  fmt.setSamples(0);
+
+  fmt.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
+
+  if (QOpenGLContext::openGLModuleType() == QOpenGLContext::LibGL) {
+    fmt.setVersion(3, 3);
+    fmt.setProfile(QSurfaceFormat::CoreProfile);
+  } else {
+    fmt.setVersion(3, 0);
+  }
+
+  QSurfaceFormat::setDefaultFormat(fmt);
+  AllowEGL = QApplication::platformName() != "xcb";
+}
+
+static sk_sp<GrDirectContext> makeContext(QOpenGLContext *ctx) {
+  auto interface = GrGLMakeAssembledInterface(ctx, [](auto ctx, auto name) {
+    return AllowEGL || strncmp(name, "egl", 3) ? static_cast<QOpenGLContext *>(ctx)->getProcAddress(name) : nullptr;
+  });
+  return GrDirectContext::MakeGL(interface);
+}
+
+static sk_sp<SkSurface> createSurface(GrRecordingContext *ctx, int w, int h, GrGLuint fbo) {
+  GrGLFramebufferInfo info;
+  info.fFBOID = fbo;
+  info.fFormat = GL_RGBA8;
+  GrBackendRenderTarget target(w, h, 0, 8, info);
+  const SkSurfaceProps props(0, SkPixelGeometry::kUnknown_SkPixelGeometry);  // Can customize subpixel layout here
+  return SkSurface::MakeFromBackendRenderTarget(ctx, target, kBottomLeft_GrSurfaceOrigin, kRGBA_8888_SkColorType,
+                                                nullptr, &props, nullptr);
+}
+
+TeXWidget::TeXWidget(QWidget *parent, float text_size)
+    : QOpenGLWidget(parent),
+      _render(nullptr),
+      _text_size(text_size),
+      _padding(20) {}
+
+TeXWidget::~TeXWidget() {
   if (_render != nullptr) delete _render;
 }
 
-float TeXWidget::getTextSize()
-{
+float TeXWidget::getTextSize() {
   return _text_size;
 }
 
-void TeXWidget::setTextSize(float size)
-{
-  if(size == _text_size) return;
+void TeXWidget::setTextSize(float size) {
+  if (size == _text_size) return;
   _text_size = size;
-  if(_render != nullptr) {
+  if (_render != nullptr) {
     _render->setTextSize(_text_size);
     update();
   }
 }
 
-void TeXWidget::setLaTeX(const std::wstring& latex)
-{
+void TeXWidget::setLaTeX(const std::wstring &latex) {
   if (_render != nullptr) delete _render;
 
   _render = LaTeX::parse(
-        latex,
-        width() - _padding * 2,
-        _text_size,
-        _text_size / 3.f,
-        0xff000000);
-  puts("setLaTeX");
+      latex,
+      width() - _padding * 2,
+      _text_size,
+      _text_size / 3.f,
+      0xff000000);
   update();
 }
 
-bool TeXWidget::isRenderDisplayed()
-{
+bool TeXWidget::isRenderDisplayed() {
   return _render != nullptr;
 }
 
-int TeXWidget::getRenderWidth()
-{
+int TeXWidget::getRenderWidth() {
   return _render == nullptr ? 0 : _render->getWidth() + _padding * 2;
 }
 
-int TeXWidget::getRenderHeight()
-{
+int TeXWidget::getRenderHeight() {
   return _render == nullptr ? 0 : _render->getHeight() + _padding * 2;
 }
 
 void TeXWidget::initializeGL() {
-  makeCurrent();
-  _functions = context()->functions();
-  _render_context = std::make_unique<RenderContext>(context(), defaultFramebufferObject());
+  _context = makeContext(context());
+  _gl = context()->functions();
 }
 
 void TeXWidget::paintGL() {
-  puts("paintGL");
-  auto *canvas = _render_context->surface->getCanvas();
+  auto *canvas = _surface->getCanvas();
   canvas->clear(SK_ColorWHITE);
   SkPaint paint;
-  canvas->drawCircle(100, 100, 50, paint);
-  Graphics2D_skia g2 (canvas);
+  Graphics2D_skia g2(canvas);
   if (_render) {
     _render->draw(g2, _padding, _padding);
   }
-  canvas->flush();
+  _context->flush();
 }
 
 void TeXWidget::resizeGL(int w, int h) {
-  makeCurrent();
-  puts("resizeGL");
-
-  _functions->glViewport(0, 0, w, h);
-  _functions->glClearColor(1, 1, 1, 1);
-  _functions->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  _functions->glClearStencil(0);
-
-  _render_context->createSurface(w, h);
+  _gl->glViewport(0, 0, w, h);
+  _context->resetContext();
+  _surface = createSurface(_context.get(), w, h, defaultFramebufferObject());
   update();
 }
 

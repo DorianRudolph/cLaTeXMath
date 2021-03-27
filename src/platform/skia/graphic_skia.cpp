@@ -9,56 +9,59 @@
 using namespace tex;
 using namespace std;
 
-std::map<std::pair<std::string,int>,int> Font_skia::_test;
-std::map<std::pair<std::string,int>,sk_sp<SkTypeface>> Font_skia::_named_typefaces;
-std::map<std::string,sk_sp<SkTypeface>> Font_skia::_file_typefaces;
+std::map<std::pair<std::string, int>, int> Font_skia::_test;
+std::map<std::pair<std::string, int>, sk_sp<SkTypeface>> Font_skia::_named_typefaces;
+std::map<std::string, sk_sp<SkTypeface>> Font_skia::_file_typefaces;
+
+SkFont::Edging Font_skia::Edging {SkFont::Edging::kAntiAlias};
+SkFontHinting Font_skia::Hinting {SkFontHinting::kNone};
 
 Font_skia::Font_skia(sk_sp<SkTypeface> typeface, float size) {
-    _font.setTypeface(std::move(typeface));
-    _font.setSubpixel(true);
-    _font.setHinting(SkFontHinting::kNone); //Glyphs move around less when zooming
-    _font.setEdging(SkFont::Edging::kSubpixelAntiAlias); //TODO make subpixel configurable
-    _font.setSize(size);
+  _font.setTypeface(std::move(typeface));
+  _font.setSubpixel(true);
+  _font.setHinting(Hinting);
+  _font.setEdging(Edging);
+  _font.setSize(size);
 }
 
 sk_sp<SkTypeface> Font_skia::loadTypefaceFromName(const string &family, int style) {
-    auto key = std::make_pair(family, style);
-    if (auto it = _named_typefaces.find(key); it != _named_typefaces.end()) {
-        return it->second;
-    } else {
-        SkFontStyle fontStyle (style & BOLD ? SkFontStyle::kBold_Weight : SkFontStyle::kNormal_Weight,
-                               SkFontStyle::kNormal_Width,
-                               style & ITALIC ? SkFontStyle::kItalic_Slant : SkFontStyle::kUpright_Slant);
-        auto typeface = SkTypeface::MakeFromName(family.c_str(), fontStyle);
-        _named_typefaces[key] = typeface;
-        return typeface;
-    }
+  auto key = std::make_pair(family, style);
+  if (auto it = _named_typefaces.find(key); it != _named_typefaces.end()) {
+    return it->second;
+  } else {
+    SkFontStyle fontStyle(style & BOLD ? SkFontStyle::kBold_Weight : SkFontStyle::kNormal_Weight,
+                          SkFontStyle::kNormal_Width,
+                          style & ITALIC ? SkFontStyle::kItalic_Slant : SkFontStyle::kUpright_Slant);
+    auto typeface = SkTypeface::MakeFromName(family.c_str(), fontStyle);
+    _named_typefaces[key] = typeface;
+    return typeface;
+  }
 }
 
 sk_sp<SkTypeface> Font_skia::loadTypefaceFromFile(const string &file) {
-    if(auto it = _file_typefaces.find(file); it != _file_typefaces.end()) {
+  if (auto it = _file_typefaces.find(file); it != _file_typefaces.end()) {
 #ifdef HAVE_LOG
-        __log << file << " already loaded, skip\n";
+    __log << file << " already loaded, skip\n";
 #endif
-        return it->second;
-    }
+    return it->second;
+  }
 
-    auto typeface = SkTypeface::MakeFromFile(file.c_str());
-    if (!typeface) {
+  auto typeface = SkTypeface::MakeFromFile(file.c_str());
+  if (!typeface) {
 #ifdef HAVE_LOG
-        __log << file << " failed to load\n";
+    __log << file << " failed to load\n";
 #endif
-        throw std::runtime_error("Failed to load font file: " + file);
-    } else {
-        _file_typefaces[file] = typeface;
-    }
-    return typeface;
+    throw std::runtime_error("Failed to load font file: " + file);
+  } else {
+    _file_typefaces[file] = typeface;
+  }
+  return typeface;
 }
 
-Font_skia::Font_skia(const string& family, int style, float size)
+Font_skia::Font_skia(const string &family, int style, float size)
     : Font_skia(loadTypefaceFromName(family, style), size) {}
 
-Font_skia::Font_skia(const string& file, float size)
+Font_skia::Font_skia(const string &file, float size)
     : Font_skia(loadTypefaceFromFile(file), size) {}
 
 string Font_skia::getFamily() const {
@@ -70,8 +73,8 @@ string Font_skia::getFamily() const {
 int Font_skia::getStyle() const {
   int out = PLAIN;
   auto fs = _font.getTypeface()->fontStyle();
-  if(fs.weight() == SkFontStyle::kBold_Weight) out |= BOLD;
-  if(fs.slant() == SkFontStyle::kItalic_Slant) out |= ITALIC;
+  if (fs.weight() == SkFontStyle::kBold_Weight) out |= BOLD;
+  if (fs.slant() == SkFontStyle::kItalic_Slant) out |= ITALIC;
   return out;
 }
 
@@ -87,32 +90,32 @@ sptr<Font> Font_skia::deriveFont(int style) const {
   return sptr<Font>(new Font_skia(getFamily(), style, getSize()));
 }
 
-bool Font_skia::operator==(const Font& ft) const {
-  const Font_skia& o = static_cast<const Font_skia&>(ft);
+bool Font_skia::operator==(const Font &ft) const {
+  const Font_skia &o = static_cast<const Font_skia &>(ft);
 
-  return getFamily()==o.getFamily() && getSize()==o.getSize() &&
-    getStyle()==o.getStyle();
+  return getFamily() == o.getFamily() && getSize() == o.getSize() &&
+         getStyle() == o.getStyle();
 }
 
-bool Font_skia::operator!=(const Font& ft) const {
+bool Font_skia::operator!=(const Font &ft) const {
   return !(*this == ft);
 }
 
-Font* Font::create(const string& file, float size) {
+Font *Font::create(const string &file, float size) {
   return new Font_skia(file, size);
 }
 
-sptr<Font> Font::_create(const string& name, int style, float size) {
+sptr<Font> Font::_create(const string &name, int style, float size) {
   return sptr<Font>(new Font_skia(name, style, size));
 }
 
 /**************************************************************************************************/
 
-TextLayout_skia::TextLayout_skia(const wstring& src, const sptr<Font_skia>& f) :
-  _font(f->getSkFont()),
-  _text(wide2utf8(src.c_str())) {}
+TextLayout_skia::TextLayout_skia(const wstring &src, const sptr<Font_skia> &f) :
+    _font(f->getSkFont()),
+    _text(wide2utf8(src.c_str())) {}
 
-void TextLayout_skia::getBounds(_out_ Rect& r) {
+void TextLayout_skia::getBounds(_out_ Rect &r) {
   SkRect rect;
   _font.measureText(_text.c_str(), _text.size(), SkTextEncoding::kUTF8, &rect);
   r.x = rect.left();
@@ -121,12 +124,12 @@ void TextLayout_skia::getBounds(_out_ Rect& r) {
   r.h = rect.height();
 }
 
-void TextLayout_skia::draw(Graphics2D& g2, float x, float y) {
-  Graphics2D_skia& g = static_cast<Graphics2D_skia&>(g2);
+void TextLayout_skia::draw(Graphics2D &g2, float x, float y) {
+  Graphics2D_skia &g = static_cast<Graphics2D_skia &>(g2);
   g.getSkCanvas()->drawString(_text.c_str(), x, y, _font, g.getSkPaint());
 }
 
-sptr<TextLayout> TextLayout::create(const wstring& src, const sptr<Font>& font) {
+sptr<TextLayout> TextLayout::create(const wstring &src, const sptr<Font> &font) {
   sptr<Font_skia> f = static_pointer_cast<Font_skia>(font);
   return sptr<TextLayout>(new TextLayout_skia(src, f));
 }
@@ -135,7 +138,7 @@ sptr<TextLayout> TextLayout::create(const wstring& src, const sptr<Font>& font) 
 
 Font_skia Graphics2D_skia::_default_font("SansSerif", PLAIN, 20.f);
 
-Graphics2D_skia::Graphics2D_skia(SkCanvas* canvas)
+Graphics2D_skia::Graphics2D_skia(SkCanvas *canvas)
     : _canvas{canvas} {
   _sx = _sy = 1.f;
   _paint.setAntiAlias(true);
@@ -153,7 +156,7 @@ color Graphics2D_skia::getColor() const {
   return _color;
 }
 
-void Graphics2D_skia::setStroke(const Stroke& s) {
+void Graphics2D_skia::setStroke(const Stroke &s) {
   _stroke = s;
   SkPaint::Cap cap;
   switch (_stroke.cap) {
@@ -189,7 +192,7 @@ void Graphics2D_skia::setStroke(const Stroke& s) {
   _paint.setStrokeJoin(join);
 }
 
-const Stroke& Graphics2D_skia::getStroke() const {
+const Stroke &Graphics2D_skia::getStroke() const {
   return _stroke;
 }
 
@@ -198,12 +201,12 @@ void Graphics2D_skia::setStrokeWidth(float w) {
   _paint.setStrokeWidth(w);
 }
 
-const Font* Graphics2D_skia::getFont() const {
+const Font *Graphics2D_skia::getFont() const {
   return _font;
 }
 
-void Graphics2D_skia::setFont(const Font* font) {
-  _font = static_cast<const Font_skia*>(font);
+void Graphics2D_skia::setFont(const Font *font) {
+  _font = static_cast<const Font_skia *>(font);
 }
 
 void Graphics2D_skia::translate(float dx, float dy) {
@@ -218,7 +221,7 @@ void Graphics2D_skia::scale(float sx, float sy) {
 }
 
 static inline float radiansToDegrees(float angle) {
-    return angle * 180.0f / (float)M_PI;
+  return angle * 180.0f / (float) M_PI;
 }
 
 void Graphics2D_skia::rotate(float angle) {
@@ -249,7 +252,7 @@ void Graphics2D_skia::drawChar(wchar_t c, float x, float y) {
   drawText(str, x, y);
 }
 
-void Graphics2D_skia::drawText(const wstring& t, float x, float y) {
+void Graphics2D_skia::drawText(const wstring &t, float x, float y) {
   auto str = wide2utf8(t.c_str());
   _paint.setStyle(SkPaint::kFill_Style);
   _canvas->drawString(str.c_str(), x, y, _font->getSkFont(), _paint);
@@ -284,12 +287,12 @@ void Graphics2D_skia::fillRoundRect(float x, float y, float w, float h, float rx
   _canvas->drawRoundRect(rect, rx, ry, _paint);
 }
 
-const SkPaint& Graphics2D_skia::getSkPaint() const {
-    return _paint;
+const SkPaint &Graphics2D_skia::getSkPaint() const {
+  return _paint;
 }
 
 SkCanvas *Graphics2D_skia::getSkCanvas() const {
-    return _canvas;
+  return _canvas;
 }
 
 

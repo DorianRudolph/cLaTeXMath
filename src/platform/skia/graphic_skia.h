@@ -17,22 +17,27 @@ namespace tex {
 class Font_skia : public Font {
 
 private:
-  SkFont _font {};
+  SkFont _font{};
 
-  static std::map<std::pair<std::string,int>,int> _test;
-  static std::map<std::pair<std::string,int>,sk_sp<SkTypeface>> _named_typefaces;
-  static std::map<std::string,sk_sp<SkTypeface>> _file_typefaces;
+  static std::map<std::pair<std::string, int>, int> _test;
+  static std::map<std::pair<std::string, int>, sk_sp<SkTypeface>> _named_typefaces;
+  static std::map<std::string, sk_sp<SkTypeface>> _file_typefaces;
 
-  static sk_sp<SkTypeface> loadTypefaceFromName(const std::string& family, int style = PLAIN);
-  static sk_sp<SkTypeface> loadTypefaceFromFile(const std::string& file);
+  static sk_sp<SkTypeface> loadTypefaceFromName(const std::string &family, int style = PLAIN);
+
+  static sk_sp<SkTypeface> loadTypefaceFromFile(const std::string &file);
 
   Font_skia(sk_sp<SkTypeface> typeface, float size);
 
 public:
 
-  Font_skia(const std::string& family = "", int style = PLAIN, float size = 1.f);
+  // Set hinting and edging for rendering on LCD screen
+  static SkFont::Edging Edging;
+  static SkFontHinting Hinting;
 
-  Font_skia(const std::string& file, float size);
+  Font_skia(const std::string &family = "", int style = PLAIN, float size = 1.f);
+
+  Font_skia(const std::string &file, float size);
 
   std::string getFamily() const;
 
@@ -44,9 +49,9 @@ public:
 
   virtual sptr<Font> deriveFont(int style) const override;
 
-  virtual bool operator==(const Font& f) const override;
+  virtual bool operator==(const Font &f) const override;
 
-  virtual bool operator!=(const Font& f) const override;
+  virtual bool operator!=(const Font &f) const override;
 
   virtual ~Font_skia() {};
 
@@ -61,11 +66,11 @@ private:
   std::string _text;
 
 public:
-  TextLayout_skia(const std::wstring& src, const sptr<Font_skia>& font);
+  TextLayout_skia(const std::wstring &src, const sptr<Font_skia> &font);
 
-  virtual void getBounds(_out_ Rect& r) override;
+  virtual void getBounds(_out_ Rect &r) override;
 
-  virtual void draw(Graphics2D& g2, float x, float y) override;
+  virtual void draw(Graphics2D &g2, float x, float y) override;
 };
 
 /**************************************************************************************************/
@@ -74,33 +79,33 @@ class Graphics2D_skia : public Graphics2D {
 private:
   static Font_skia _default_font;
 
-  SkCanvas* _canvas;
+  SkCanvas *_canvas;
   SkPaint _paint;
   color _color;
   Stroke _stroke;
-  const Font_skia* _font;
+  const Font_skia *_font;
   float _sx, _sy;
 
 public:
-  Graphics2D_skia(SkCanvas* painter);
+  Graphics2D_skia(SkCanvas *painter);
 
-  SkCanvas* getSkCanvas() const;
+  SkCanvas *getSkCanvas() const;
 
-  const SkPaint& getSkPaint() const;
+  const SkPaint &getSkPaint() const;
 
   virtual void setColor(color c) override;
 
   virtual color getColor() const override;
 
-  virtual void setStroke(const Stroke& s) override;
+  virtual void setStroke(const Stroke &s) override;
 
-  virtual const Stroke& getStroke() const override;
+  virtual const Stroke &getStroke() const override;
 
   virtual void setStrokeWidth(float w) override;
 
-  virtual const Font* getFont() const override;
+  virtual const Font *getFont() const override;
 
-  virtual void setFont(const Font* font) override;
+  virtual void setFont(const Font *font) override;
 
   virtual void translate(float dx, float dy) override;
 
@@ -118,7 +123,7 @@ public:
 
   virtual void drawChar(wchar_t c, float x, float y) override;
 
-  virtual void drawText(const std::wstring& t, float x, float y) override;
+  virtual void drawText(const std::wstring &t, float x, float y) override;
 
   virtual void drawLine(float x, float y1, float x2, float y2) override;
 
