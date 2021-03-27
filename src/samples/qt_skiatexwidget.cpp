@@ -7,6 +7,8 @@
 #include "platform/skia/graphic_skia.h"
 #include <gpu/gl/GrGLAssembleInterface.h>
 #include <QApplication>
+#include <svg/SkSVGCanvas.h>
+#include <core/SkStream.h>
 
 using namespace tex;
 
@@ -107,8 +109,8 @@ void TeXWidget::paintGL() {
   auto *canvas = _surface->getCanvas();
   canvas->clear(SK_ColorWHITE);
   SkPaint paint;
-  Graphics2D_skia g2(canvas);
   if (_render) {
+    Graphics2D_skia g2(canvas);
     _render->draw(g2, _padding, _padding);
   }
   _context->flush();
@@ -119,6 +121,20 @@ void TeXWidget::resizeGL(int w, int h) {
   _context->resetContext();
   _surface = createSurface(_context.get(), w, h, defaultFramebufferObject());
   update();
+}
+
+void TeXWidget::saveSVG(const char *path) {
+  // This does not work properly for the more complex examples,
+  // which might be due to skia as the SkSVG backend is still experimental.
+  // Simples case like $\frac12$ seem to work fine, though.
+  SkFILEWStream stream(path);
+  SkRect bounds = SkRect::MakeIWH(width(), height());
+  std::unique_ptr<SkCanvas> canvas = SkSVGCanvas::Make(bounds, &stream);
+
+  if (_render) {
+    Graphics2D_skia g2(canvas.get());
+    _render->draw(g2, _padding, _padding);
+  }
 }
 
 

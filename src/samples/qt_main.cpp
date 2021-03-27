@@ -6,12 +6,13 @@
 #include "qt_mainwindow.h"
 
 #include <QApplication>
-#include <QStyleFactory>
 
-int main(int argc, char **argv)
-{
-  QApplication::setStyle(QStyleFactory::create("Fusion"));
+int main(int argc, char **argv) {
   QApplication app(argc, argv);
+
+#ifdef BUILD_SKIA
+  initGL();
+#endif
 
   tex::LaTeX::init();
   MainWindow mainwin;

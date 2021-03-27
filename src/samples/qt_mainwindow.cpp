@@ -93,6 +93,9 @@ void MainWindow::renderClicked()
 
 void MainWindow::saveClicked()
 {
+#ifdef BUILD_SKIA
+  _texwidget->saveSVG("out.svg");
+#endif
 }
 
 #endif

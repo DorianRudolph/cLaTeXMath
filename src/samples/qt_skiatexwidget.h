@@ -33,6 +33,8 @@ public:
 
   int getRenderHeight();
 
+  void saveSVG(const char *path);
+
 protected:
   void initializeGL() override;
 
