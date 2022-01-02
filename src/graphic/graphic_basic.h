@@ -19,6 +19,7 @@ static const color yellow = 0xffffff00;
 static const color cyan = 0xff00ffff;
 static const color magenta = 0xffff00ff;
 
+#undef TRANSPARENT
 static const color TRANSPARENT = transparent;
 static const color BLACK = black;
 static const color WHITE = white;

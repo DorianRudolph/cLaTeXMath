@@ -115,7 +115,7 @@ TextLayout_skia::TextLayout_skia(const wstring &src, const sptr<Font_skia> &f) :
     _font(f->getSkFont()),
     _text(wide2utf8(src.c_str())) {}
 
-void TextLayout_skia::getBounds(_out_ Rect &r) {
+void TextLayout_skia::getBounds(Rect &r) {
   SkRect rect;
   _font.measureText(_text.c_str(), _text.size(), SkTextEncoding::kUTF8, &rect);
   r.x = rect.left();

@@ -257,49 +257,49 @@ void DefaultTeXFontParser::parseFontDescriptions(const string& file) {
 
 void DefaultTeXFontParser::setupFontInfo(__BasicInfo& bi, FontInfo& fi) {
   float* const metrics = new float[bi.metrics.size() * 5];
-  accumulate(begin(bi.metrics), end(bi.metrics), 0, [&metrics](const int i, const __Metrics& m) {
-    const size_t r = i * 5;
-    metrics[r + 0] = m.ch;
-    metrics[r + 1] = m.width;
-    metrics[r + 2] = m.height;
-    metrics[r + 3] = m.depth;
-    metrics[r + 4] = m.italic;
-    return i + 1;
-  });
+  size_t i = 0;
+  for (const auto &m : bi.metrics) {
+      const size_t r = i++ * 5;
+      metrics[r + 0] = m.ch;
+      metrics[r + 1] = m.width;
+      metrics[r + 2] = m.height;
+      metrics[r + 3] = m.depth;
+      metrics[r + 4] = m.italic;
+  }
   int* const exts = new int[bi.extensions.size() * 5];
-  accumulate(begin(bi.extensions), end(bi.extensions), 0, [&exts](const int i, const __Extension& e) {
-    const size_t r = i * 5;
-    exts[r + 0]    = e.ch;
-    exts[r + 1]    = e.top;
-    exts[r + 2]    = e.mid;
-    exts[r + 3]    = e.rep;
-    exts[r + 4]    = e.bot;
-    return i + 1;
-  });
+  i = 0;
+  for (const auto &e : bi.extensions) {
+      const size_t r = i++ * 5;
+      exts[r + 0]    = e.ch;
+      exts[r + 1]    = e.top;
+      exts[r + 2]    = e.mid;
+      exts[r + 3]    = e.rep;
+      exts[r + 4]    = e.bot;
+  }
   int* const largers = new int[bi.largers.size() * 3];
-  accumulate(begin(bi.largers), end(bi.largers), 0, [&largers](const int i, const __Larger& l) {
-    const size_t r = i * 3;
-    largers[r + 0] = l.code;
-    largers[r + 1] = l.larger;
-    largers[r + 2] = l.fontId;
-    return i + 1;
-  });
+  i = 0;
+  for (const auto &l : bi.largers) {
+      const size_t r = i++ * 3;
+      largers[r + 0] = l.code;
+      largers[r + 1] = l.larger;
+      largers[r + 2] = l.fontId;
+  }
   wchar_t* const ligtures = new wchar_t[bi.ligs.size() * 3];
-  accumulate(begin(bi.ligs), end(bi.ligs), 0, [&ligtures](const int i, const __Lig& l) {
-    const size_t r  = i * 3;
-    ligtures[r + 0] = l.left;
-    ligtures[r + 1] = l.right;
-    ligtures[r + 2] = l.lig;
-    return i + 1;
-  });
+  i = 0;
+  for (const auto &l : bi.ligs) {
+      const size_t r  = i++ * 3;
+      ligtures[r + 0] = l.left;
+      ligtures[r + 1] = l.right;
+      ligtures[r + 2] = l.lig;
+  }
   float* const kerns = new float[bi.kerns.size() * 3];
-  accumulate(begin(bi.kerns), end(bi.kerns), 0, [&kerns](const int i, const __Kern& k) {
-    const size_t r = i * 3;
-    kerns[r + 0]   = k.left;
-    kerns[r + 1]   = k.right;
-    kerns[r + 2]   = k.kern;
-    return i + 1;
-  });
+  i = 0;
+  for (const auto &k : bi.kerns) {
+      const size_t r = i++ * 3;
+      kerns[r + 0]   = k.left;
+      kerns[r + 1]   = k.right;
+      kerns[r + 2]   = k.kern;
+  }
   fi.__metrics(metrics, bi.metrics.size() * 5, true);
   fi.__extensions(exts, bi.extensions.size() * 5, true);
   fi.__largers(largers, bi.largers.size() * 3, true);
